@@ -1,6 +1,10 @@
-const express = require('express');
 const fs = require('fs');
 const path = require('path');
+
+const express = require('express');
+const uuid = require('uuid');
+
+const resData = require('./utils/restaurant-data');
 
 const app = express();
 
@@ -20,13 +24,12 @@ app.get('/recommend',function(req,res){
 
 app.post('/recommend', function(req,res){
     const restaurants = req.body;
-    const filePath = path.join(__dirname,'data','restaurants.json');
-    const fileData = fs.readFileSync(filePath);
-    const storedRestaurants = JSON.parse(fileData);
+    restaurants.id = uuid.v4();
+    const storedRestaurants = resData.getStoredRestaurants();
 
     storedRestaurants.push(restaurants);
 
-    fs.writeFileSync(filePath, JSON.stringify(storedRestaurants));
+    resData.storeRestaurants(storedRestaurants);
 
     res.redirect('/confirm');
 });
@@ -40,16 +43,31 @@ app.get('/about',function(req,res){
 });
 
 app.get('/restaurants',function(req,res){
-    const filePath = path.join(__dirname,'data','restaurants.json');
-    const fileData = fs.readFileSync(filePath);
-    const storedRestaurants = JSON.parse(fileData);
+    const storedRestaurants = resData.getStoredRestaurants();
 
     res.render('restaurants', {numberOfRestaurants: storedRestaurants.length, restaurants: storedRestaurants,});            //passing the location of file;
 });
 
 app.get('/restaurants/:id',function(req,res){ //restaurants/r1 (r1/r2/r3....rn)
     const restaurantId = req.params.id;
-    res.render('restaurants-details',{ rid: restaurantId });
-})
+
+    const storedRestaurants = resData.getStoredRestaurants();
+
+    for(const restaurant of storedRestaurants){
+        if(restaurant.id === restaurantId){
+            return res.render('restaurants-details',{ restaurant: restaurant, });
+        }
+    }
+
+    res.status(404).render("404");
+});
+
+app.use(function(req,res){
+    res.status(404).render('404');
+});
+
+app.use(function(error,req,res,next){
+    res.status(500).render('500');
+});
 
 app.listen(3000);
