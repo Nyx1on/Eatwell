@@ -32,11 +32,11 @@ app.post('/recommend', function(req,res){
 });
 
 app.get('/confirm',function(req,res){
-    res.render('confirm');          //passing the location of file;
+    res.render('confirm');          //passing the location of file(rendering ejs);
 });
 
 app.get('/about',function(req,res){
-    res.render('about');            //passing the location of file;
+    res.render('about');            //passing the location of file(rendering ejs);
 });
 
 app.get('/restaurants',function(req,res){
@@ -46,5 +46,10 @@ app.get('/restaurants',function(req,res){
 
     res.render('restaurants', {numberOfRestaurants: storedRestaurants.length, restaurants: storedRestaurants,});            //passing the location of file;
 });
+
+app.get('/restaurants/:id',function(req,res){ //restaurants/r1 (r1/r2/r3....rn)
+    const restaurantId = req.params.id;
+    res.render('restaurants-details',{ rid: restaurantId });
+})
 
 app.listen(3000);
